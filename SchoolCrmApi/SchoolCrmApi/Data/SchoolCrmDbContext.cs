@@ -3,9 +3,9 @@ using SchoolCrmApi.Models;
 
 namespace SchoolCrmApi.Data
 {
-    public class SchoolCrtDbContext : DbContext
+    public class SchoolCrmDbContext : DbContext
     {
-        public SchoolCrtDbContext(DbContextOptions<SchoolCrtDbContext> options) 
+        public SchoolCrmDbContext(DbContextOptions<SchoolCrmDbContext> options) 
             : base(options)
         {
         }
