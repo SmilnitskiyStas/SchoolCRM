@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using SchoolCrmApi.Models;
+using SchoolCrmApi.Services.IServices;
 
 namespace SchoolCrmApi.Controllers
 {
@@ -7,21 +9,74 @@ namespace SchoolCrmApi.Controllers
     [ApiController]
     public class StudentsController : ControllerBase
     {
-        public StudentsController()
+        private readonly IStudentService _studentService;
+
+        public StudentsController(IStudentService studentService)
         {
-            
+            _studentService = studentService;
         }
 
         [HttpGet]
-        public IActionResult GetStudents()
+        public async Task<ActionResult<IEnumerable<Student>>> GetAllStudents()
         {
-            var students = new[]
-            {
-                new { Id = 1, Name = "Alice Johnson", Age = 20 },
-                new { Id = 2, Name = "Bob Smith", Age = 22 },
-                new { Id = 3, Name = "Charlie Brown", Age = 19 }
-            };
+            var students = await _studentService.GetAllAsync();
             return Ok(students);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Student>> GetStudentById(int id)
+        {
+            var student = await _studentService.GetByIdAsync(id);
+            if (student == null)
+            {
+                return NotFound();
+            }
+            return Ok(student);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<Student>> CreateStudent(Student student)
+        {
+            var createdStudent = await _studentService.AddAsync(student);
+            return CreatedAtAction(nameof(GetStudentById), new { id = createdStudent.Id }, createdStudent);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult<Student>> UpdateStudent(int id, Student student)
+        {
+            if (id != student.Id)
+            {
+                return BadRequest();
+            }
+
+            var existingStudent = await _studentService.GetByIdAsync(id);
+            if (existingStudent == null)
+            {
+                return NotFound();
+            }
+
+            var updatedStudent = await _studentService.UpdateAsync(student);
+            return Ok(updatedStudent);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteStudent(int id)
+        {
+            var existingStudent = await _studentService.GetByIdAsync(id);
+            if (existingStudent == null)
+            {
+                return NotFound();
+            }
+
+            var result = await _studentService.DeleteAsync(id);
+            if (result)
+            {
+                return NoContent();
+            }
+            else
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error deleting student");
+            }
         }
     }
 }
